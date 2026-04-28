@@ -4,6 +4,7 @@ from modele_prediction import prediction
 from modifier_matrices import modifier
 from fastapi.middleware.cors import CORSMiddleware
 
+app=FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], # Autorise tout pour le test local
@@ -11,7 +12,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app=FastAPI()
+
 
 @app.get("/prediction")
 def get_prediction(categorie:int=2,viabilite:int=5,position:int=5):
