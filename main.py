@@ -2,6 +2,14 @@ from fastapi import FastAPI,Query
 from typing import Annotated
 from modele_prediction import prediction 
 from modifier_matrices import modifier
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Autorise tout pour le test local
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app=FastAPI()
 
