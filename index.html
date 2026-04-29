@@ -243,3 +243,42 @@
         resDiv.innerHTML = "⌛ Analyse du modèle IA en cours...";
 
         let url = `${API_URL}/${mode === 'prediction' ? 'prediction' : 'entrener'}?categorie=${cat}&viabilite=${viab}&position=${pos}`;
+        if(mode === 'train') url += `&valeur=${document.getElementById('t-valeur').value}`;
+
+        try {
+            const resp = await fetch(url);
+            const data = await resp.json();
+            
+            resDiv.style.background = "#ecfdf5";
+            resDiv.style.border = "1px solid #10b981";
+            
+            if(mode === 'prediction') {
+                const baseValue = data.prediction;
+                const titledValue = baseValue * 1.70; // +70% pour le Titre Foncier
+
+                resDiv.innerHTML = `
+                    <div style="font-size: 0.9rem; color: #64748b">Estimation de base (Terrain brut) :</div>
+                    <div style="font-size: 1.8rem; font-weight: bold; color: #0f172a">${baseValue.toLocaleString('fr-FR', {maximumFractionDigits: 0})} FCFA</div>
+                    
+                    <div class="title-bonus">
+                        <div style="font-size: 1.1rem; color: #b45309; font-weight: bold;">📜 Cas d'un terrain avec Titre Foncier (+70%)</div>
+                        <div style="font-size: 2.2rem; font-weight: bold; color: #d97706">${titledValue.toLocaleString('fr-FR', {maximumFractionDigits: 0})} FCFA</div>
+                        <p style="margin-top: 8px; font-size: 0.85rem; color: #475569">
+                            La présence d'un titre foncier sécurise l'investissement et augmente la valeur marchande de 70% par rapport à l'estimation physique brute.
+                        </p>
+                    </div>
+
+                    <div style="margin-top: 20px; font-size: 0.8rem; color: #94a3b8; text-align: right;">Précision statistique (R²) : ${(data.coef_determination*100).toFixed(2)}%</div>
+                `;
+            } else {
+                resDiv.innerHTML = `✅ Donnée enregistrée ! Le modèle s'est affiné avec vos informations (R² : ${data.coef_determination.toFixed(4)})`;
+            }
+        } catch (err) {
+            resDiv.style.background = "#fef2f2";
+            resDiv.style.border = "1px solid #ef4444";
+            resDiv.innerHTML = "❌ Impossible de contacter le serveur Railway. Vérifiez la connexion API.";
+        }
+    }
+</script>
+</body>
+</html>
