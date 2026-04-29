@@ -3,338 +3,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Régression Linéaire</title>
+    <title>Analyse Immobilière - Régression Linéaire</title>
     <style>
         :root {
             --primary-color: #2563eb;
             --secondary-color: #1e40af;
-            --bg-color: #f3f4f6;
-            --text-color: #1f2937;
+            --bg-color: #f8fafc;
+            --text-color: #1e293b;
             --card-bg: #ffffff;
+            --border-color: #e2e8f0;
             --success-color: #10b981;
             --error-color: #ef4444;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: system-ui, -apple-system, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
+        body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.6; }
 
         header {
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: 2rem;
+            padding: 3rem 1rem;
             text-align: center;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
         }
 
-        header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
+        main { max-width: 900px; margin: -2rem auto 3rem; padding: 0 1rem; }
 
-        main {
-            flex: 1;
-            padding: 2rem;
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
-        }
+        .btn-group { display: flex; gap: 1rem; justify-content: center; margin-bottom: 2rem; }
 
         .view {
-            display: none;
             background: var(--card-bg);
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            animation: fadeIn 0.3s ease-in-out;
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            display: none;
         }
 
-        .view.active {
-            display: block;
-        }
+        .view.active { display: block; }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        h2 { margin-bottom: 1.5rem; color: var(--secondary-color); border-bottom: 2px solid var(--bg-color); padding-bottom: 0.5rem; }
 
-        .btn-group {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
+        /* Style des Catégories */
+        .category-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
             margin-bottom: 2rem;
         }
 
+        .cat-option {
+            border: 2px solid var(--border-color);
+            padding: 1rem;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .cat-option:hover { border-color: var(--primary-color); background: #eff6ff; }
+
+        input[type="radio"] { display: none; }
+
+        input[type="radio"]:checked + .cat-option {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Grilles de critères */
+        .criteria-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            background: #f1f5f9;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .check-item input { width: 18px; height: 18px; cursor: pointer; }
+
         button {
+            width: 100%;
             background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            font-weight: bold;
-        }
-
-        button:hover {
-            background-color: var(--secondary-color);
-        }
-
-        button.outline {
-            background-color: transparent;
-            color: var(--primary-color);
-            border: 2px solid var(--primary-color);
-        }
-
-        button.outline:hover {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-
-        input[type="number"] {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        input[type="number"]:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .result-box {
-            margin-top: 1.5rem;
             padding: 1rem;
-            border-radius: 5px;
-            display: none;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.1s;
         }
 
-        .result-box.success {
-            background-color: #ecfdf5;
-            border: 1px solid var(--success-color);
-            color: #065f46;
-            display: block;
-        }
+        button:active { transform: scale(0.98); }
 
-        .result-box.error {
-            background-color: #fef2f2;
-            border: 1px solid var(--error-color);
-            color: #991b1b;
-            display: block;
-        }
+        .result-box { margin-top: 2rem; padding: 1.5rem; border-radius: 8px; display: none; border-left: 5px solid; }
+        .result-box.success { display: block; background: #f0fdf4; border-color: var(--success-color); color: #166534; }
+        .result-box.error { display: block; background: #fef2f2; border-color: var(--error-color); color: #991b1b; }
 
-        footer {
-            background-color: #1f2937;
-            color: #9ca3af;
-            text-align: center;
-            padding: 1.5rem;
-            margin-top: auto;
-            font-size: 0.875rem;
-            line-height: 1.5;
-        }
-
-        .loader {
-            display: none;
-            text-align: center;
-            margin-top: 1rem;
-            font-style: italic;
-            color: var(--primary-color);
-        }
+        footer { text-align: center; padding: 2rem; color: #64748b; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>📊 Régression Linéaire</h1>
-        <p>Modèle d'analyse et de prédiction de données</p>
+        <h1>📊 Modèle de Prédiction Immobilière</h1>
+        <p>Estimez la valeur d'un terrain grâce à l'apprentissage automatique</p>
     </header>
 
     <main>
         <div class="btn-group">
             <button onclick="switchView('prediction-view')" id="btn-pred">Faire une Prédiction</button>
-            <button onclick="switchView('train-view')" class="outline" id="btn-train">Enrichir le Modèle</button>
+            <button onclick="switchView('train-view')" style="background:none; color:var(--primary-color); border:2px solid var(--primary-color)" id="btn-train">Enrichir le Modèle</button>
         </div>
 
         <div id="prediction-view" class="view active">
-            <h2>Nouvelle Prédiction</h2>
-            <p style="margin-bottom: 1.5rem; color: #6b7280;">Saisissez les caractéristiques pour obtenir une estimation.</p>
+            <h2>Paramètres du Terrain</h2>
             
-            <form id="form-prediction" onsubmit="handlePrediction(event)">
-                <div class="form-group">
-                    <label for="p-cat">Catégorie (1 à 4)</label>
-                    <input type="number" id="p-cat" min="1" max="4" required placeholder="Ex: 2">
+            <form id="form-prediction" onsubmit="processData(event, 'prediction')">
+                <label><strong>1. Catégorie du terrain (Standing)</strong></label>
+                <div class="category-selector">
+                    <label><input type="radio" name="p-cat" value="1" required><div class="cat-option">Standard (1)</div></label>
+                    <label><input type="radio" name="p-cat" value="2"><div class="cat-option">Moyen (2)</div></label>
+                    <label><input type="radio" name="p-cat" value="3"><div class="cat-option">Haut Standing (3)</div></label>
+                    <label><input type="radio" name="p-cat" value="4"><div class="cat-option">Luxe (4)</div></label>
                 </div>
-                <div class="form-group">
-                    <label for="p-viab">Viabilité (0 à 10)</label>
-                    <input type="number" id="p-viab" min="0" max="10" required placeholder="Ex: 5">
+
+                <label><strong>2. Viabilité (Points d'intérêt - Max 10)</strong></label>
+                <div class="criteria-grid" id="p-viability-list">
+                    <label class="check-item"><input type="checkbox" value="1"> Sécurité / Clôture</label>
+                    <label class="check-item"><input type="checkbox" value="1"> Accès Électricité</label>
+                    <label class="check-item"><input type="checkbox" value="1"> Eau Courante (CDE)</label>
+                    <label class="check-item"><input type="checkbox" value="1"> Éclairage Public</label>
+                    <label class="check-item"><input type="checkbox" value="1"> Connexion Fibre/4G</label>
+                    <label class="check-item"><input type="checkbox" value="1"> Voisinage Résidentiel</label>
+                    <label class="check-item"><input type="checkbox" value="1"> Assainissement / Égouts</label>
+                    <label class="check-item"><input type="checkbox" value="1"> Proximité Commerces</label>
+                    <label class="check-item"><input type="checkbox" value="1"> Écoles / Hôpitaux</label>
+                    <label class="check-item"><input type="checkbox" value="1"> Absence de Litiges</label>
                 </div>
-                <div class="form-group">
-                    <label for="p-pos">Position (0 à 10)</label>
-                    <input type="number" id="p-pos" min="0" max="10" required placeholder="Ex: 5">
+
+                <label><strong>3. Position Stratégique (Poids x2 - Max 10)</strong></label>
+                <div class="criteria-grid" id="p-position-list">
+                    <label class="check-item"><input type="checkbox" value="2"> Proximité Axe Principal</label>
+                    <label class="check-item"><input type="checkbox" value="2"> Accès Goudronné</label>
+                    <label class="check-item"><input type="checkbox" value="2"> Proche Centre-Ville</label>
+                    <label class="check-item"><input type="checkbox" value="2"> Zone Aéroport / Gare</label>
+                    <label class="check-item"><input type="checkbox" value="2"> Infrastructures Majeures</label>
                 </div>
-                <button type="submit" style="width: 100%;">Prédire</button>
+
+                <button type="submit">Lancer l'Analyse</button>
             </form>
-            <div id="pred-loader" class="loader">Interrogation du modèle en cours...</div>
             <div id="pred-result" class="result-box"></div>
         </div>
 
         <div id="train-view" class="view">
-            <h2>Enrichir le Modèle</h2>
-            <p style="margin-bottom: 1.5rem; color: #6b7280;">Ajoutez de nouvelles données pour affiner les matrices d'apprentissage.</p>
-
-            <form id="form-train" onsubmit="handleTraining(event)">
-                <div class="form-group">
-                    <label for="t-cat">Catégorie (1 à 4)</label>
-                    <input type="number" id="t-cat" min="1" max="4" required placeholder="Ex: 2">
+            <h2>Ajouter une Donnée Réelle</h2>
+            <form id="form-train" onsubmit="processData(event, 'train')">
+                <p>Utilisez les mêmes critères que la prédiction pour calibrer le modèle.</p>
+                <div style="margin-top:10px" class="form-group">
+                    <label><strong>Valeur réelle constatée (CFA/m²)</strong></label>
+                    <input type="number" id="t-valeur" style="width:100%; padding:10px; margin:10px 0; border:1px solid #ccc; border-radius:5px;" required>
                 </div>
-                <div class="form-group">
-                    <label for="t-viab">Viabilité (0 à 10)</label>
-                    <input type="number" id="t-viab" min="0" max="10" required placeholder="Ex: 5">
-                </div>
-                <div class="form-group">
-                    <label for="t-pos">Position (0 à 10)</label>
-                    <input type="number" id="t-pos" min="0" max="10" required placeholder="Ex: 5">
-                </div>
-                <div class="form-group">
-                    <label for="t-valeur">Valeur cible observée</label>
-                    <input type="number" id="t-valeur" required placeholder="Ex: 5000">
-                </div>
-                <button type="submit" style="width: 100%;">Ajouter et Ré-entraîner</button>
+                <button type="submit">Enregistrer dans la Base</button>
             </form>
-            <div id="train-loader" class="loader">Mise à jour des matrices en cours...</div>
             <div id="train-result" class="result-box"></div>
         </div>
     </main>
 
     <footer>
-        Projet de régression linéaire réalisé par <strong>TCHOUANBOU JEAN NELSON</strong><br>
-        Étudiant en deuxième année de licence informatique<br>
-        Université de Yaoundé 1 • Année 2025-2026
+        Développé par <strong>TCHOUANBOU JEAN NELSON</strong><br>
+        Faculté des Sciences • Université de Yaoundé 1
     </footer>
 
     <script>
-        // URL de base de ton API hébergée sur Railway
         const API_BASE_URL = "https://tchouanbou-jean-nelson-24f2830tpinf232-production.up.railway.app";
 
-        // Fonction pour naviguer entre les vues
         function switchView(viewId) {
             document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
-            
-            const btnPred = document.getElementById('btn-pred');
-            const btnTrain = document.getElementById('btn-train');
-            
-            // Mise à jour du style des boutons de navigation
-            if(viewId === 'prediction-view') {
-                btnPred.className = '';
-                btnTrain.className = 'outline';
-                document.getElementById('pred-result').className = 'result-box';
-            } else {
-                btnTrain.className = '';
-                btnPred.className = 'outline';
-                document.getElementById('train-result').className = 'result-box';
-            }
         }
 
-        // Fonction pour gérer la prédiction
-        async function handlePrediction(event) {
-            event.preventDefault();
-            const cat = document.getElementById('p-cat').value;
-            const viab = document.getElementById('p-viab').value;
-            const pos = document.getElementById('p-pos').value;
-            
-            const resultBox = document.getElementById('pred-result');
-            const loader = document.getElementById('pred-loader');
-            
-            resultBox.className = 'result-box';
-            loader.style.display = 'block';
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/prediction?categorie=${cat}&viabilite=${viab}&position=${pos}`);
-                if (!response.ok) throw new Error("Erreur réseau ou serveur inaccessible");
-                
-                const data = await response.json();
-                
-                resultBox.className = 'result-box success';
-                resultBox.innerHTML = `
-                    <h3 style="margin-bottom: 8px;">🎯 Résultat :</h3>
-                    <p><strong>Valeur prédite :</strong> ${data.prediction.toFixed(2)}</p>
-                    <p><strong>Coefficient R² :</strong> ${data.coef_determination.toFixed(4)}</p>
-                `;
-            } catch (error) {
-                resultBox.className = 'result-box error';
-                resultBox.innerHTML = `<strong>Erreur :</strong> Impossible de joindre l'API. Assure-toi que le serveur Railway est en ligne.`;
-                console.error(error);
-            } finally {
-                loader.style.display = 'none';
-            }
+        // Calcule le score des checkboxes
+        function calculateScore(containerId) {
+            const checkboxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`);
+            let score = 0;
+            checkboxes.forEach(cb => score += parseInt(cb.value));
+            return score;
         }
 
-        // Fonction pour gérer l'entraînement
-        async function handleTraining(event) {
+        async function processData(event, type) {
             event.preventDefault();
-            const cat = document.getElementById('t-cat').value;
-            const viab = document.getElementById('t-viab').value;
-            const pos = document.getElementById('t-pos').value;
-            const valeur = document.getElementById('t-valeur').value;
             
-            const resultBox = document.getElementById('train-result');
-            const loader = document.getElementById('train-loader');
+            const prefix = type === 'prediction' ? 'p' : 't';
+            const cat = document.querySelector(`input[name="${prefix}-cat"]:checked`).value;
+            const viabilite = calculateScore(`${prefix}-viability-list`);
+            const position = calculateScore(`${prefix}-position-list`);
             
-            resultBox.className = 'result-box';
-            loader.style.display = 'block';
+            const resultBox = document.getElementById(`${prefix}-result`);
+            resultBox.innerHTML = "Traitement en cours...";
+            resultBox.className = "result-box success";
+
+            let url = `${API_BASE_URL}/${type === 'prediction' ? 'prediction' : 'entrener'}?categorie=${cat}&viabilite=${viabilite}&position=${position}`;
+            
+            if (type === 'train') {
+                const val = document.getElementById('t-valeur').value;
+                url += `&valeur=${val}`;
+            }
 
             try {
-                const response = await fetch(`${API_BASE_URL}/entrener?categorie=${cat}&viabilite=${viab}&position=${pos}&valeur=${valeur}`);
-                if (!response.ok) throw new Error("Erreur réseau ou serveur inaccessible");
-                
+                const response = await fetch(url);
                 const data = await response.json();
                 
-                if (data.coef_determination) {
-                    resultBox.className = 'result-box success';
+                if(type === 'prediction') {
                     resultBox.innerHTML = `
-                        <h3 style="margin-bottom: 8px;">✅ Succès :</h3>
-                        <p><strong>Message :</strong> ${data.message}</p>
-                        <p><strong>Nouveau R² :</strong> ${data.coef_determination.toFixed(4)}</p>
+                        <h3>Résultat de l'IA :</h3>
+                        <p>Valeur estimée : <strong>${data.prediction.toLocaleString()} CFA</strong></p>
+                        <p><small>Précision du modèle (R²) : ${(data.coef_determination * 100).toFixed(2)}%</small></p>
                     `;
                 } else {
-                    resultBox.className = 'result-box error';
-                    resultBox.innerHTML = `
-                        <h3 style="margin-bottom: 8px;">⚠️ Attention :</h3>
-                        <p>${data.message}</p>
-                    `;
+                    resultBox.innerHTML = `✅ Modèle mis à jour avec succès ! Nouveau R² : ${data.coef_determination.toFixed(4)}`;
                 }
-            } catch (error) {
-                resultBox.className = 'result-box error';
-                resultBox.innerHTML = `<strong>Erreur :</strong> Impossible de joindre l'API. Assure-toi que le serveur Railway est en ligne.`;
-                console.error(error);
-            } finally {
-                loader.style.display = 'none';
+            } catch (e) {
+                resultBox.className = "result-box error";
+                resultBox.innerHTML = "Erreur de connexion avec le serveur Railway.";
             }
         }
     </script>
