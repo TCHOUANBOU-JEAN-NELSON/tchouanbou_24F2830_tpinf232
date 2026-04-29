@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ML Real Estate - UY1</title>
+    <title>ML Real Estate - Prix au m² · UY1</title>
     <style>
         :root {
             --primary: #2563eb;
@@ -130,8 +130,8 @@
 <body>
 
 <header>
-    <h1>🏠 Estimation Immobilière</h1>
-    <p>Intelligence Artificielle • Régression Linéaire</p>
+    <h1>🏠 Estimation du Prix au m²</h1>
+    <p>Intelligence Artificielle • Régression Linéaire • Immobilier</p>
 </header>
 
 <main>
@@ -143,7 +143,7 @@
     <div id="pred-view" class="view active">
         <form onsubmit="handleSubmit(event, 'prediction')">
             <div id="form-content-pred"></div>
-            <button type="submit" class="btn-submit">Calculer l'estimation</button>
+            <button type="submit" class="btn-submit">Estimer le prix au m²</button>
         </form>
         <div id="pred-res" class="result"></div>
     </div>
@@ -151,8 +151,8 @@
     <div id="train-view" class="view">
         <form onsubmit="handleSubmit(event, 'train')">
             <div id="form-content-train"></div>
-            <div class="section-title">💰 Valeur de base constatée (sans titre)</div>
-            <input type="number" id="t-valeur" class="input-price" placeholder="Prix réel constaté (ex: 25000)" required>
+            <div class="section-title">💰 Prix au m² constaté (sans titre foncier)</div>
+            <input type="number" id="t-valeur" class="input-price" placeholder="Prix réel au m² (ex: 25 000)" required>
             <button type="submit" class="btn-submit" style="background: var(--accent);">Ajouter au modèle</button>
         </form>
         <div id="train-res" class="result"></div>
@@ -253,16 +253,16 @@
             resDiv.style.border = "1px solid #10b981";
             
             if(mode === 'prediction') {
-                const baseValue = data.prediction;
+                const baseValue = data.prediction; // prix au m² de base
                 const titledValue = baseValue * 1.70; // +70% pour le Titre Foncier
 
                 resDiv.innerHTML = `
-                    <div style="font-size: 0.9rem; color: #64748b">Estimation de base (Terrain brut) :</div>
-                    <div style="font-size: 1.8rem; font-weight: bold; color: #0f172a">${baseValue.toLocaleString('fr-FR', {maximumFractionDigits: 0})} FCFA</div>
+                    <div style="font-size: 0.9rem; color: #64748b">Estimation du prix au m² (terrain brut) :</div>
+                    <div style="font-size: 1.8rem; font-weight: bold; color: #0f172a">${baseValue.toLocaleString('fr-FR', {maximumFractionDigits: 0})} FCFA / m²</div>
                     
                     <div class="title-bonus">
-                        <div style="font-size: 1.1rem; color: #b45309; font-weight: bold;">📜 Cas d'un terrain avec Titre Foncier (+70%)</div>
-                        <div style="font-size: 2.2rem; font-weight: bold; color: #d97706">${titledValue.toLocaleString('fr-FR', {maximumFractionDigits: 0})} FCFA</div>
+                        <div style="font-size: 1.1rem; color: #b45309; font-weight: bold;">📜 Avec Titre Foncier (+70% au m²)</div>
+                        <div style="font-size: 2.2rem; font-weight: bold; color: #d97706">${titledValue.toLocaleString('fr-FR', {maximumFractionDigits: 0})} FCFA / m²</div>
                         <p style="margin-top: 8px; font-size: 0.85rem; color: #475569">
                             La présence d'un titre foncier sécurise l'investissement et augmente la valeur marchande de 70% par rapport à l'estimation physique brute.
                         </p>
