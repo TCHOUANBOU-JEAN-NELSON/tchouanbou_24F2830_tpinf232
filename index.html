@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Régression Linéaire</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --bg-color: #f3f4f6;
+            --text-color: #1f2937;
+            --card-bg: #ffffff;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .view {
+            display: none;
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        button.outline {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        button.outline:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .result-box {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .result-box.success {
+            background-color: #ecfdf5;
+            border: 1px solid var(--success-color);
+            color: #065f46;
+            display: block;
+        }
+
+        .result-box.error {
+            background-color: #fef2f2;
+            border: 1px solid var(--error-color);
+            color: #991b1b;
+            display: block;
+        }
+
+        footer {
+            background-color: #1f2937;
+            color: #9ca3af;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: auto;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .loader {
+            display: none;
+            text-align: center;
+            margin-top: 1rem;
+            font-style: italic;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>📊 Régression Linéaire</h1>
+        <p>Modèle d'analyse et de prédiction de données</p>
+    </header>
+
+    <main>
+        <div class="btn-group">
+            <button onclick="switchView('prediction-view')" id="btn-pred">Faire une Prédiction</button>
+            <button onclick="switchView('train-view')" class="outline" id="btn-train">Enrichir le Modèle</button>
+        </div>
+
+        <div id="prediction-view" class="view active">
+            <h2>Nouvelle Prédiction</h2>
+            <p style="margin-bottom: 1.5rem; color: #6b7280;">Saisissez les caractéristiques pour obtenir une estimation.</p>
+            
+            <form id="form-prediction" onsubmit="handlePrediction(event)">
+                <div class="form-group">
+                    <label for="p-cat">Catégorie (1 à 4)</label>
+                    <input type="number" id="p-cat" min="1" max="4" required placeholder="Ex: 2">
+                </div>
+                <div class="form-group">
+                    <label for="p-viab">Viabilité (0 à 10)</label>
+                    <input type="number" id="p-viab" min="0" max="10" required placeholder="Ex: 5">
+                </div>
+                <div class="form-group">
+                    <label for="p-pos">Position (0 à 10)</label>
+                    <input type="number" id="p-pos" min="0" max="10" required placeholder="Ex: 5">
+                </div>
+                <button type="submit" style="width: 100%;">Prédire</button>
+            </form>
+            <div id="pred-loader" class="loader">Interrogation du modèle en cours...</div>
+            <div id="pred-result" class="result-box"></div>
+        </div>
+
+        <div id="train-view" class="view">
+            <h2>Enrichir le Modèle</h2>
+            <p style="margin-bottom: 1.5rem; color: #6b7280;">Ajoutez de nouvelles données pour affiner les matrices d'apprentissage.</p>
+
+            <form id="form-train" onsubmit="handleTraining(event)">
+                <div class="form-group">
+                    <label for="t-cat">Catégorie (1 à 4)</label>
+                    <input type="number" id="t-cat" min="1" max="4" required placeholder="Ex: 2">
+                </div>
+                <div class="form-group">
+                    <label for="t-viab">Viabilité (0 à 10)</label>
+                    <input type="number" id="t-viab" min="0" max="10" required placeholder="Ex: 5">
+                </div>
+                <div class="form-group">
+                    <label for="t-pos">Position (0 à 10)</label>
+                    <input type="number" id="t-pos" min="0" max="10" required placeholder="Ex: 5">
+                </div>
+                <div class="form-group">
+                    <label for="t-valeur">Valeur cible observée</label>
+                    <input type="number" id="t-valeur" required placeholder="Ex: 5000">
+                </div>
+                <button type="submit" style="width: 100%;">Ajouter et Ré-entraîner</button>
+            </form>
+            <div id="train-loader" class="loader">Mise à jour des matrices en cours...</div>
+            <div id="train-result" class="result-box"></div>
+        </div>
+    </main>
+
+    <footer>
+        Projet de régression linéaire réalisé par <strong>TCHOUANBOU JEAN NELSON</strong><br>
+        Étudiant en deuxième année de licence informatique<br>
+        Université de Yaoundé 1 • Année 2025-2026
+    </footer>
+
+    <script>
+        // URL de base de ton API hébergée sur Railway
+        const API_BASE_URL = "https://tchouanbou-jean-nelson-24f2830tpinf232-production.up.railway.app";
+
+        // Fonction pour naviguer entre les vues
+        function switchView(viewId) {
+            document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            
+            const btnPred = document.getElementById('btn-pred');
+            const btnTrain = document.getElementById('btn-train');
+            
+            // Mise à jour du style des boutons de navigation
+            if(viewId === 'prediction-view') {
+                btnPred.className = '';
+                btnTrain.className = 'outline';
+                document.getElementById('pred-result').className = 'result-box';
+            } else {
+                btnTrain.className = '';
+                btnPred.className = 'outline';
+                document.getElementById('train-result').className = 'result-box';
+            }
+        }
+
+        // Fonction pour gérer la prédiction
+        async function handlePrediction(event) {
+            event.preventDefault();
+            const cat = document.getElementById('p-cat').value;
+            const viab = document.getElementById('p-viab').value;
+            const pos = document.getElementById('p-pos').value;
+            
+            const resultBox = document.getElementById('pred-result');
+            const loader = document.getElementById('pred-loader');
+            
+            resultBox.className = 'result-box';
+            loader.style.display = 'block';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/prediction?categorie=${cat}&viabilite=${viab}&position=${pos}`);
+                if (!response.ok) throw new Error("Erreur réseau ou serveur inaccessible");
+                
+                const data = await response.json();
+                
+                resultBox.className = 'result-box success';
+                resultBox.innerHTML = `
+                    <h3 style="margin-bottom: 8px;">🎯 Résultat :</h3>
+                    <p><strong>Valeur prédite :</strong> ${data.prediction.toFixed(2)}</p>
+                    <p><strong>Coefficient R² :</strong> ${data.coef_determination.toFixed(4)}</p>
+                `;
+            } catch (error) {
+                resultBox.className = 'result-box error';
+                resultBox.innerHTML = `<strong>Erreur :</strong> Impossible de joindre l'API. Assure-toi que le serveur Railway est en ligne.`;
+                console.error(error);
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+
+        // Fonction pour gérer l'entraînement
+        async function handleTraining(event) {
+            event.preventDefault();
+            const cat = document.getElementById('t-cat').value;
+            const viab = document.getElementById('t-viab').value;
+            const pos = document.getElementById('t-pos').value;
+            const valeur = document.getElementById('t-valeur').value;
+            
+            const resultBox = document.getElementById('train-result');
+            const loader = document.getElementById('train-loader');
+            
+            resultBox.className = 'result-box';
+            loader.style.display = 'block';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/entrener?categorie=${cat}&viabilite=${viab}&position=${pos}&valeur=${valeur}`);
+                if (!response.ok) throw new Error("Erreur réseau ou serveur inaccessible");
+                
+                const data = await response.json();
+                
+                if (data.coef_determination) {
+                    resultBox.className = 'result-box success';
+                    resultBox.innerHTML = `
+                        <h3 style="margin-bottom: 8px;">✅ Succès :</h3>
+                        <p><strong>Message :</strong> ${data.message}</p>
+                        <p><strong>Nouveau R² :</strong> ${data.coef_determination.toFixed(4)}</p>
+                    `;
+                } else {
+                    resultBox.className = 'result-box error';
+                    resultBox.innerHTML = `
+                        <h3 style="margin-bottom: 8px;">⚠️ Attention :</h3>
+                        <p>${data.message}</p>
+                    `;
+                }
+            } catch (error) {
+                resultBox.className = 'result-box error';
+                resultBox.innerHTML = `<strong>Erreur :</strong> Impossible de joindre l'API. Assure-toi que le serveur Railway est en ligne.`;
+                console.error(error);
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
