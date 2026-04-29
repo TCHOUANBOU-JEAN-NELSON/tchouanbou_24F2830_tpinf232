@@ -54,32 +54,34 @@
         .view.active { display: block; }
 
         /* Formulaire */
-        .section-title { margin: 1.5rem 0 1rem; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; color: var(--secondary); }
+        .section-title { margin: 1.5rem 0 1rem; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; color: var(--secondary); font-weight: bold; }
         
-        /* Catégories stylisées */
-        .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+        /* Catégories stylisées et détaillées */
+        .cat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 1.5rem; }
         .cat-card {
             border: 2px solid #e2e8f0;
-            padding: 1rem 0.5rem;
-            text-align: center;
+            padding: 1rem;
             border-radius: 10px;
             cursor: pointer;
             transition: 0.2s;
-            font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
         }
+        .cat-title { font-weight: bold; font-size: 1rem; margin-bottom: 4px; }
+        .cat-desc { font-size: 0.8rem; color: #64748b; }
+        
         input[type="radio"] { display: none; }
         input[type="radio"]:checked + .cat-card {
             border-color: var(--primary);
             background: #eff6ff;
-            font-weight: bold;
-            color: var(--primary);
         }
+        input[type="radio"]:checked + .cat-card .cat-title { color: var(--primary); }
 
         /* Critères (Checkboxes) */
         .criteria-list {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
+            gap: 12px;
             background: #f8fafc;
             padding: 1.2rem;
             border-radius: 10px;
@@ -115,6 +117,12 @@
         .result { margin-top: 1.5rem; padding: 1.5rem; border-radius: 10px; display: none; animation: slideUp 0.4s; }
         @keyframes slideUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
 
+        .title-bonus {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px dashed #cbd5e1;
+        }
+
         footer { text-align: center; padding: 2rem; color: #64748b; font-size: 0.8rem; }
     </style>
 </head>
@@ -133,7 +141,8 @@
 
     <div id="pred-view" class="view active">
         <form onsubmit="handleSubmit(event, 'prediction')">
-            <div id="form-content-pred"></div> <button type="submit" class="btn-submit">Calculer l'estimation</button>
+            <div id="form-content-pred"></div>
+            <button type="submit" class="btn-submit">Calculer l'estimation</button>
         </form>
         <div id="pred-res" class="result"></div>
     </div>
@@ -141,7 +150,7 @@
     <div id="train-view" class="view">
         <form onsubmit="handleSubmit(event, 'train')">
             <div id="form-content-train"></div>
-            <div class="section-title">💰 Valeur constatée</div>
+            <div class="section-title">💰 Valeur de base constatée (sans titre)</div>
             <input type="number" id="t-valeur" class="input-price" placeholder="Prix réel du terrain (ex: 15000)" required>
             <button type="submit" class="btn-submit" style="background: var(--accent);">Ajouter au modèle</button>
         </form>
@@ -157,43 +166,51 @@
 <script>
     const API_URL = "https://tchouanbou-jean-nelson-24f2830tpinf232-production.up.railway.app";
 
-    // Configuration des critères (Shared between both forms)
+    const categories = [
+        { val: 1, title: "1 - Périphérie / Enclavé", desc: "Zone rurale, lointaine ou difficile d'accès." },
+        { val: 2, title: "2 - Quartier Populaire", desc: "Zone urbaine dense, classe moyenne/modeste." },
+        { val: 3, title: "3 - Résidentiel Standard", desc: "Quartier calme, structuré, bon voisinage." },
+        { val: 4, title: "4 - Haut Standing / Luxe", desc: "Hyper-centre, zone administrative ou bourgeoise." }
+    ];
+
     const criteriaHTML = (prefix) => `
-        <div class="section-title">📂 Catégorie du terrain</div>
+        <div class="section-title">📂 Catégorie de la zone (Standing)</div>
         <div class="cat-grid">
-            ${[1, 2, 3, 4].map(i => `
+            ${categories.map(c => `
                 <label>
-                    <input type="radio" name="${prefix}-cat" value="${i}" ${i===1?'checked':''} required>
-                    <div class="cat-card">${i===1?'Faible':i===2?'Moyen':i===3?'Avantageux':'Excellent'}</div>
+                    <input type="radio" name="${prefix}-cat" value="${c.val}" ${c.val===1?'checked':''} required>
+                    <div class="cat-card">
+                        <span class="cat-title">${c.title}</span>
+                        <span class="cat-desc">${c.desc}</span>
+                    </div>
                 </label>
             `).join('')}
         </div>
 
-        <div class="section-title">🏗️ Viabilité (Qualité du terrain)</div>
+        <div class="section-title">🏗️ Viabilité physique (10 pts)</div>
         <div class="criteria-list" id="${prefix}-viability">
             <label class="item"><input type="checkbox" value="1"> Sécurité / Gardiennage</label>
-            <label class="item"><input type="checkbox" value="1"> Réseau Électrique</label>
-            <label class="item"><input type="checkbox" value="1"> Accès Eau (CDE)</label>
+            <label class="item"><input type="checkbox" value="1"> Réseau Électrique présent</label>
+            <label class="item"><input type="checkbox" value="1"> Accès Eau (Réseau public)</label>
             <label class="item"><input type="checkbox" value="1"> Éclairage Public</label>
-            <label class="item"><input type="checkbox" value="1"> Connexion Internet</label>
+            <label class="item"><input type="checkbox" value="1"> Couverture réseau/Internet</label>
             <label class="item"><input type="checkbox" value="1"> Voisinage Calme</label>
-            <label class="item"><input type="checkbox" value="1"> Évacuation des eaux</label>
-            <label class="item"><input type="checkbox" value="1"> Proximité Marché</label>
-            <label class="item"><input type="checkbox" value="1"> Écoles proches</label>
-            <label class="item"><input type="checkbox" value="1"> Titre Foncier propre</label>
+            <label class="item"><input type="checkbox" value="1"> Système de drainage/égouts</label>
+            <label class="item"><input type="checkbox" value="1"> Terrain Plat / Non marécageux</label>
+            <label class="item"><input type="checkbox" value="1"> Proximité d'un marché</label>
+            <label class="item"><input type="checkbox" value="1"> Écoles ou hôpitaux proches</label>
         </div>
 
-        <div class="section-title">📍 Position Stratégique</div>
+        <div class="section-title">📍 Position Stratégique (10 pts)</div>
         <div class="criteria-list" id="${prefix}-position">
             <label class="item"><input type="checkbox" value="2"> Axe routier principal</label>
             <label class="item"><input type="checkbox" value="2"> Accès goudronné</label>
             <label class="item"><input type="checkbox" value="2"> Proche Centre-ville</label>
             <label class="item"><input type="checkbox" value="2"> Proche Aéroport/Gare</label>
-            <label class="item"><input type="checkbox" value="2"> Grands Projets (Stades...)</label>
+            <label class="item"><input type="checkbox" value="2"> Infrastructures Majeures (Stade...)</label>
         </div>
     `;
 
-    // Initialisation des formulaires
     document.getElementById('form-content-pred').innerHTML = criteriaHTML('p');
     document.getElementById('form-content-train').innerHTML = criteriaHTML('t');
 
@@ -221,7 +238,7 @@
 
         resDiv.style.display = "block";
         resDiv.style.background = "#f1f5f9";
-        resDiv.innerHTML = "⌛ Analyse en cours...";
+        resDiv.innerHTML = "⌛ Interrogation du modèle IA...";
 
         let url = `${API_URL}/${mode === 'prediction' ? 'prediction' : 'entrener'}?categorie=${cat}&viabilite=${viab}&position=${pos}`;
         if(mode === 'train') url += `&valeur=${document.getElementById('t-valeur').value}`;
@@ -234,17 +251,30 @@
             resDiv.style.border = "1px solid #10b981";
             
             if(mode === 'prediction') {
+                const baseValue = data.prediction;
+                const titledValue = baseValue * 1.70; // +70% pour un terrain titré
+
                 resDiv.innerHTML = `
-                    <div style="font-size: 0.9rem; color: #64748b">Estimation suggérée :</div>
-                    <div style="font-size: 1.8rem; font-weight: bold; color: #065f46">${data.prediction.toLocaleString()} FCFA</div>
-                    <div style="margin-top: 10px; font-size: 0.8rem">Fiabilité du modèle : ${(data.coef_determination*100).toFixed(2)}%</div>
+                    <div style="font-size: 0.9rem; color: #64748b">Estimation de base (Terrain coutumier) :</div>
+                    <div style="font-size: 1.8rem; font-weight: bold; color: #0f172a">${baseValue.toLocaleString('fr-FR', {maximumFractionDigits: 0})} FCFA</div>
+                    
+                    <div class="title-bonus">
+                        <div style="font-size: 1rem; color: #b45309; font-weight: bold;">📜 Cas d'un terrain avec Titre Foncier (+70%)</div>
+                        <div style="font-size: 2rem; font-weight: bold; color: #d97706">${titledValue.toLocaleString('fr-FR', {maximumFractionDigits: 0})} FCFA</div>
+                        <div style="margin-top: 5px; font-size: 0.85rem; color: #64748b">
+                            Un terrain titré offre une sécurité juridique totale. Sur le marché, cette garantie fait grimper les prix d'au moins 70% par rapport à la valeur brute modélisée.
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 15px; font-size: 0.8rem; text-align: right;">R² du modèle : ${(data.coef_determination*100).toFixed(2)}%</div>
                 `;
             } else {
-                resDiv.innerHTML = `✅ Donnée ajoutée ! Le modèle s'est affiné (R² : ${data.coef_determination.toFixed(4)})`;
+                resDiv.innerHTML = `✅ Donnée ajoutée avec succès ! L'IA s'est affinée (Nouveau R² : ${data.coef_determination.toFixed(4)})`;
             }
         } catch (err) {
             resDiv.style.background = "#fef2f2";
-            resDiv.innerHTML = "❌ Erreur : Serveur Railway injoignable.";
+            resDiv.style.border = "1px solid #ef4444";
+            resDiv.innerHTML = "❌ Erreur de connexion au serveur Railway. Vérifie que ton API est bien lancée.";
         }
     }
 </script>
