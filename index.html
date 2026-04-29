@@ -1,6 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Real Estate - UY1</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #1e40af;
+            --accent: #f59e0b;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --text: #0f172a;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); line-height: 1.5; }
+
+        header {
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: white;
+            padding: 3rem 1rem 5rem;
+            text-align: center;
+        }
+
+        main { max-width: 850px; margin: -3rem auto 3rem; padding: 0 1rem; }
+
+        /* Navigation */
+        .tabs {
+            display: flex;
+            background: white;
+            padding: 0.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: 0.3s;
+            color: #64748b;
+        }
+        .tab-btn.active { background: var(--primary); color: white; }
+
+        .view { display: none; background: var(--card); padding: 2rem; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .view.active { display: block; }
+
+        /* Formulaire */
+        .section-title { margin: 1.5rem 0 1rem; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; color: var(--secondary); font-weight: bold; }
+        
+        /* Catégories stylisées et détaillées (Hiérarchie Inversée) */
+        .cat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 1.5rem; }
+        .cat-card {
+            border: 2px solid #e2e8f0;
+            padding: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .cat-title { font-weight: bold; font-size: 1rem; margin-bottom: 4px; }
+        .cat-desc { font-size: 0.8rem; color: #64748b; }
+        
+        input[type="radio"] { display: none; }
+        input[type="radio"]:checked + .cat-card {
+            border-color: var(--primary);
+            background: #eff6ff;
+        }
+        input[type="radio"]:checked + .cat-card .cat-title { color: var(--primary); }
+
+        /* Critères (Checkboxes) */
+        .criteria-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            background: #f8fafc;
+            padding: 1.2rem;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        .item { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; cursor: pointer; }
+        .item input { width: 18px; height: 18px; accent-color: var(--primary); }
+
+        .input-price {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 1.2rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 2rem;
+            transition: 0.2s;
+        }
+        .btn-submit:hover { background: var(--secondary); transform: translateY(-2px); }
+
+        .result { margin-top: 1.5rem; padding: 1.5rem; border-radius: 10px; display: none; animation: slideUp 0.4s; }
+        @keyframes slideUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+
+        .title-bonus {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px dashed #cbd5e1;
+        }
+
+        footer { text-align: center; padding: 2rem; color: #64748b; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🏠 Estimation Immobilière</h1>
+    <p>Intelligence Artificielle • Régression Linéaire</p>
+</header>
+
+<main>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('pred')">🔮 Prédiction</button>
+        <button class="tab-btn" onclick="showTab('train')">📊 Enrichissement</button>
+    </div>
+
+    <div id="pred-view" class="view active">
+        <form onsubmit="handleSubmit(event, 'prediction')">
+            <div id="form-content-pred"></div>
+            <button type="submit" class="btn-submit">Calculer l'estimation</button>
+        </form>
+        <div id="pred-res" class="result"></div>
+    </div>
+
+    <div id="train-view" class="view">
+        <form onsubmit="handleSubmit(event, 'train')">
+            <div id="form-content-train"></div>
+            <div class="section-title">💰 Valeur de base constatée (sans titre)</div>
+            <input type="number" id="t-valeur" class="input-price" placeholder="Prix réel constaté (ex: 25000)" required>
+            <button type="submit" class="btn-submit" style="background: var(--accent);">Ajouter au modèle</button>
+        </form>
+        <div id="train-res" class="result"></div>
+    </div>
+</main>
+
+<footer>
+    Projet TCHOUANBOU JEAN NELSON • 2025-2026<br>
+    Informatique Niveau 2 • Université de Yaoundé 1
+</footer>
+
+<script>
     const API_URL = "https://tchouanbou-jean-nelson-24f2830tpinf232-production.up.railway.app";
 
-    // Hiérarchie inversée : 1 est le plus prestigieux, 4 est le moins important
+    // 1 est le plus important (Prestige), 4 est le moins important (Périphérie)
     const categories = [
         { val: 1, title: "1 - Zone de Prestige / Centre", desc: "Hyper-centre, quartiers résidentiels de luxe ou administratifs." },
         { val: 2, title: "2 - Zone Urbaine Développée", desc: "Quartiers structurés, accès facile aux services et commerces." },
@@ -15,7 +182,7 @@
                 <label>
                     <input type="radio" name="${prefix}-cat" value="${c.val}" ${c.val===1?'checked':''} required>
                     <div class="cat-card">
-                        <span class="cat-title" style="color: ${c.val === 1 ? 'var(--primary)' : 'inherit'}">${c.title}</span>
+                        <span class="cat-title">${c.title}</span>
                         <span class="cat-desc">${c.desc}</span>
                     </div>
                 </label>
@@ -45,3 +212,34 @@
             <label class="item"><input type="checkbox" value="2"> Infrastructures Majeures (Stade...)</label>
         </div>
     `;
+
+    document.getElementById('form-content-pred').innerHTML = criteriaHTML('p');
+    document.getElementById('form-content-train').innerHTML = criteriaHTML('t');
+
+    function showTab(type) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(type + '-view').classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    function getScore(id) {
+        let score = 0;
+        document.querySelectorAll(`#${id} input:checked`).forEach(i => score += parseInt(i.value));
+        return score;
+    }
+
+    async function handleSubmit(event, mode) {
+        event.preventDefault();
+        const prefix = mode === 'prediction' ? 'p' : 't';
+        const resDiv = document.getElementById(mode === 'prediction' ? 'pred-res' : 'train-res');
+        
+        const cat = document.querySelector(`input[name="${prefix}-cat"]:checked`).value;
+        const viab = getScore(`${prefix}-viability`);
+        const pos = getScore(`${prefix}-position`);
+
+        resDiv.style.display = "block";
+        resDiv.style.background = "#f1f5f9";
+        resDiv.innerHTML = "⌛ Analyse du modèle IA en cours...";
+
+        let url = `${API_URL}/${mode === 'prediction' ? 'prediction' : 'entrener'}?categorie=${cat}&viabilite=${viab}&position=${pos}`;
