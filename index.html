@@ -28,7 +28,6 @@
 
         main { max-width: 850px; margin: -3rem auto 3rem; padding: 0 1rem; }
 
-        /* Navigation */
         .tabs {
             display: flex;
             background: white;
@@ -53,10 +52,8 @@
         .view { display: none; background: var(--card); padding: 2rem; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
         .view.active { display: block; }
 
-        /* Formulaire */
         .section-title { margin: 1.5rem 0 1rem; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; color: var(--secondary); font-weight: bold; }
         
-        /* Catégories stylisées et détaillées (Hiérarchie Inversée) */
         .cat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 1.5rem; }
         .cat-card {
             border: 2px solid #e2e8f0;
@@ -78,7 +75,6 @@
         }
         input[type="radio"]:checked + .cat-card .cat-title { color: var(--primary); }
 
-        /* Critères (Checkboxes) */
         .criteria-list {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -167,7 +163,6 @@
 <script>
     const API_URL = "https://tchouanbou-jean-nelson-24f2830tpinf232-production.up.railway.app";
 
-    // 1 est le plus important (Prestige), 4 est le moins important (Périphérie)
     const categories = [
         { val: 1, title: "1 - Zone de Prestige / Centre", desc: "Hyper-centre, quartiers résidentiels de luxe ou administratifs." },
         { val: 2, title: "2 - Zone Urbaine Développée", desc: "Quartiers structurés, accès facile aux services et commerces." },
@@ -191,7 +186,7 @@
 
         <div class="section-title">🏗️ Viabilité physique (10 pts)</div>
         <div class="criteria-list" id="${prefix}-viability">
-            <label class="item"><input type="checkbox" value="1"> Sécurité / Gardiennage</label>
+            <label class="item"><input type="checkbox" value="1" checked disabled> Sécurité / Gardiennage</label>
             <label class="item"><input type="checkbox" value="1"> Réseau Électrique présent</label>
             <label class="item"><input type="checkbox" value="1"> Accès Eau (Réseau public)</label>
             <label class="item"><input type="checkbox" value="1"> Éclairage Public</label>
@@ -253,8 +248,8 @@
             resDiv.style.border = "1px solid #10b981";
             
             if(mode === 'prediction') {
-                const baseValue = data.prediction; // prix au m² de base
-                const titledValue = baseValue * 1.70; // +70% pour le Titre Foncier
+                const baseValue = data.prediction;
+                const titledValue = baseValue * 1.70;
 
                 resDiv.innerHTML = `
                     <div style="font-size: 0.9rem; color: #64748b">Estimation du prix au m² (terrain brut) :</div>
